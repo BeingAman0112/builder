@@ -1,0 +1,10 @@
+.page-break {
+  margin: 30px 0;
+  border-top: 2px dashed #ccc;
+}
+/* Optional: Only visible on print */
+@media print {
+  .page-break {
+    page-break-after: always;
+  }
+}

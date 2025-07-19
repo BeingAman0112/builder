@@ -1,0 +1,105 @@
+<form [formGroup]="formGroup" (submit)="onSubmit()">
+  <div *ngFor="let component of formJSON.components">
+  <ng-container *ngFor="let component of component.elements">
+
+    <!-- HEADER -->
+    <h1 *ngIf="component.type === 'header'" [ngStyle]="component.attributes.style">
+      {{ component.attributes.text }}
+    </h1>
+
+    <!-- TEXT FIELD -->
+    <div *ngIf="component.type === 'text'">
+      <label *ngIf="component.attributes.label">{{ component.attributes.label }}</label>
+      <input
+        type="text"
+        [formControlName]="component.attributes.field_name"
+        [placeholder]="component.attributes.placeholder_text"
+        [ngStyle]="component.attributes.style"
+      />
+      <div *ngIf="formGroup.get(component.attributes.field_name)?.invalid && formGroup.get(component.attributes.field_name)?.touched" style="color: red">
+        This field is required.
+      </div>
+    </div>
+
+    <!-- PARAGRAPH -->
+    <p *ngIf="component.type === 'paragraph'" [ngStyle]="component.attributes.style">
+      {{ component.attributes.text }}
+    </p>
+
+    <!-- CALCULATED FIELD -->
+    <div *ngIf="component.type === 'calculated'">
+      <label>{{ component.attributes.label }}</label>
+      <input
+        type="text"
+        [value]="evaluateFormula(component)"
+        [ngStyle]="component.attributes.style"
+        readonly
+      />
+    </div>
+
+<!-- DYNAMIC TABLE -->
+<div *ngIf="component.type === 'table-dynamic'">
+  <label><strong>{{ component.attributes.label }}</strong></label>
+
+  <div formArrayName="{{ component.attributes.field_name }}">
+    <table class="table" border="1" cellpadding="8" cellspacing="0" style="width: 100%; margin-top: 10px;">
+      <thead>
+        <tr>
+          <th *ngFor="let col of component.attributes.columns">{{ col }}</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let rowGroup of getFormArray(component.attributes.field_name).controls; let i = index"
+          [formGroupName]="i"
+        >
+          <td *ngFor="let col of component.attributes.columns">
+            <input type="text" [formControlName]="col" />
+          </td>
+          <td>
+            <button type="button" (click)="removeDynamicRow(component.attributes.field_name, i)">Remove</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <button type="button" (click)="addDynamicRow(component)">
+      {{ component.attributes.addRowText || 'Add Row' }}
+    </button>
+  </div>
+</div>
+
+
+
+<!-- TIMESAPN COMPONENT -->
+<div *ngIf="component.type === 'timespan'" [formGroup]="formGroup" style="margin-bottom: 1rem;" >
+  <label>{{ component.attributes.label }}</label>
+  <div style="display: flex; gap: 1rem; margin-top: 5px;">
+    <div  [ngStyle]="component.attributes.style">
+      <label>Start Time</label><br />
+      <input type="time" [formControlName]="component.attributes.start_field" />
+    </div>
+    <div  [ngStyle]="component.attributes.style">
+      <label>End Time</label><br />
+      <input type="time" [formControlName]="component.attributes.end_field" />
+    </div>
+  </div>
+
+  <div style="margin-top: 5px;" *ngIf="getDuration(component) as duration"  [ngStyle]="component.attributes.style">
+    ⏱ <strong>Duration:</strong> {{ duration }}
+  </div>
+</div>
+
+
+<!-- PAGE BREAK -->
+<div *ngIf="component.type === 'pagebreak'" class="page-break">
+  <hr />
+</div>
+
+
+
+  </ng-container>
+  </div>
+  <button type="submit" [disabled]="formGroup.invalid">Submit</button>
+</form>
